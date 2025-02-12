@@ -9,7 +9,7 @@ on:
 env:
   ANDROID_SDK_VERSION: "35"
   ANDROID_NDK_VERSION: "26.1.10909125"
-  ONNXRUNTIME_VERSION: "v1.20.1"
+  ONNXRUNTIME_VERSION: "1.20.1"
   QNN_SDK_VERSION: "2.28.2.241116"
   ANDROID_MIN_SDK_VERSION: "24"
 
@@ -52,7 +52,7 @@ jobs:
 
       - name: Clone ONNX Runtime at version ${{ env.ONNXRUNTIME_VERSION }}
         run: |
-          git clone --branch ${{ env.ONNXRUNTIME_VERSION }} --depth 1 https://github.com/microsoft/onnxruntime.git
+          git clone --branch v${{ env.ONNXRUNTIME_VERSION }} --depth 1 https://github.com/microsoft/onnxruntime.git
 
       - name: Download and extract Qualcomm Neural Processing SDK ${{ env.QNN_SDK_VERSION }}
         run: |
