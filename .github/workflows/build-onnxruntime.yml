@@ -1,0 +1,71 @@
+name: Build onnxruntime
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    env:
+      ANDROID_SDK_VERSION: "35"
+      ANDROID_NDK_VERSION: "26.1.10909125"
+      ONNXRUNTIME_VERSION: "v1.16.0"
+      QNN_SDK_VERSION: "v2.28.2.241116"
+      ANDROID_MIN_SDK_VERSION: "24"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (required for Android builds)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Android SDK ${{ env.ANDROID_SDK_VERSION }}
+        uses: android-actions/setup-android@v3
+
+      - name: Install required Android SDK components
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-${{ env.ANDROID_SDK_VERSION }}" "build-tools;${{ env.ANDROID_SDK_VERSION }}.0.0"
+
+      - name: Install Android NDK ${{ env.ANDROID_NDK_VERSION }}
+        run: |
+          sdkmanager "ndk;${{ env.ANDROID_NDK_VERSION }}"
+          echo "NDK_ROOT=$ANDROID_HOME/ndk/${{ env.ANDROID_NDK_VERSION }}" >> $GITHUB_ENV
+
+      - name: Install patch utility
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patch
+
+      - name: Clone ONNX Runtime at version ${{ env.ONNXRUNTIME_VERSION }}
+        run: |
+          git clone --branch ${{ env.ONNXRUNTIME_VERSION }} --depth 1 https://github.com/microsoft/onnxruntime.git
+
+      - name: Download and extract Qualcomm Neural Processing SDK ${{ env.QNN_SDK_VERSION }}
+        run: |
+          wget -O qnn_sdk.zip "https://apigwx-aws.qualcomm.com/qsc/public/v1/api/download/software/qualcomm_neural_processing_sdk/${{ env.QNN_SDK_VERSION }}.zip"
+          unzip qnn_sdk.zip -d qnn_sdk
+          rm qnn_sdk.zip
+
+      - name: Build ONNX Runtime with QNN support
+        run: |
+          python3 tools/ci_build/build.py --build_shared_lib --skip_submodule_sync --android \
+            --config Release --use_qnn --qnn_home qnn_sdk/${{ env.QNN_SDK_VERSION }}/ \
+            --android_sdk_path $ANDROID_HOME \
+            --android_ndk_path $ANDROID_HOME/ndk/${{ env.ANDROID_NDK_VERSION }} \
+            --android_abi arm64-v8a --android_api ${{ env.ANDROID_MIN_SDK_VERSION }} --cmake_generator Ninja --build_dir build
