@@ -45,10 +45,10 @@ jobs:
           sdkmanager "ndk;${{ env.ANDROID_NDK_VERSION }}"
           echo "NDK_ROOT=$ANDROID_HOME/ndk/${{ env.ANDROID_NDK_VERSION }}" >> $GITHUB_ENV
 
-      - name: Install patch utility
+      - name: Install patch utility and ninja-build
         run: |
           sudo apt-get update
-          sudo apt-get install -y patch
+          sudo apt-get install -y patch ninja-build
 
       - name: Clone ONNX Runtime at version ${{ env.ONNXRUNTIME_VERSION }}
         run: |
