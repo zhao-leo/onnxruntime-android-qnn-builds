@@ -1,0 +1,1 @@
+# Builds of onnxruntime for Android with QNN Execution Provider
