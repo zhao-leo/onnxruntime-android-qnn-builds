@@ -17,7 +17,20 @@ env:
   ANDROID_MIN_SDK_VERSION: "24"
 
 jobs:
+  check-existing:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content_newer'
+
   build:
+    needs: check-existing
+    if: needs.check-existing.outputs.should_skip != 'true'
     runs-on: ubuntu-22.04
 
     steps:
