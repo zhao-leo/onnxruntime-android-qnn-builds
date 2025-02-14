@@ -2,6 +2,8 @@ name: Build ONNX Runtime
 
 on:
   push:
+    paths:
+      - '.github/**' # Skip unncessary builds
     branches:
       - master  # This triggers the workflow on push to the master branch
   workflow_dispatch:  # This allows the workflow to be triggered manually
@@ -17,20 +19,8 @@ env:
   ANDROID_MIN_SDK_VERSION: "24"
 
 jobs:
-  check-existing:
-    runs-on: ubuntu-22.04
-    # Map a step output to a job output
-    outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
-    steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@v5
-        with:
-          concurrent_skipping: 'same_content_newer'
 
   build:
-    needs: check-existing
-    if: needs.check-existing.outputs.should_skip != 'true'
     runs-on: ubuntu-22.04
 
     steps:
@@ -65,6 +55,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y patch ninja-build
+      
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
 
       - name: Clone ONNX Runtime at version ${{ env.ONNXRUNTIME_VERSION }}
         run: |
@@ -78,6 +71,7 @@ jobs:
 
       - name: Build ONNX Runtime for Android arm64-v8a with QNN support
         run: |
+          env NDK_CCACHE=ccache \
           python3 tools/ci_build/build.py --build_shared_lib --skip_submodule_sync --android \
             --config Release --use_qnn --qnn_home $HOME/qnn_sdk/qairt/${{ env.QNN_SDK_VERSION }}/ \
             --android_sdk_path ${{ env.ANDROID_HOME }} \
