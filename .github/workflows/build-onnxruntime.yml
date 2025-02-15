@@ -58,6 +58,9 @@ jobs:
       
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          restore-keys: ccache-
+          max-size: 1024M
 
       - name: Clone ONNX Runtime at version ${{ env.ONNXRUNTIME_VERSION }}
         run: |
@@ -70,6 +73,8 @@ jobs:
           rm qnn_sdk.zip
 
       - name: Build ONNX Runtime for Android arm64-v8a with QNN support
+        env:
+          CCACHE_COMPILERCHECK: content
         run: |
           python3 tools/ci_build/build.py --build_shared_lib --skip_submodule_sync --android \
             --config Release --use_qnn --qnn_home $HOME/qnn_sdk/qairt/${{ env.QNN_SDK_VERSION }}/ \
