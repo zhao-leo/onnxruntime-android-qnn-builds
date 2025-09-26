@@ -62,7 +62,7 @@ jobs:
 
       - name: Clone ONNX Runtime at version ${{ env.ONNXRUNTIME_VERSION }}
         run: |
-          git clone --branch v${{ env.ONNXRUNTIME_VERSION }} --depth 1 https://github.com/microsoft/onnxruntime.git
+          git clone --branch v${{ env.ONNXRUNTIME_VERSION }} --recursive https://github.com/microsoft/onnxruntime.git
 
       - name: Download and extract Qualcomm Neural Processing SDK ${{ env.QNN_SDK_VERSION }}
         run: |
