@@ -81,12 +81,13 @@ jobs:
             --android_ndk_path ${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }} \
             --android_abi arm64-v8a --android_api ${{ env.ANDROID_MIN_SDK_VERSION }} \
             --cmake_generator Ninja --allow_running_as_root --use_cache \
-            --build_dir build/android/arm64-v8a
+            --build_dir build/android/arm64-v8a \
+            --build_java
         working-directory: onnxruntime
       
       - name: Zip the files
         run: |
-          zip onnxruntime-android-qnn.zip onnxruntime/build/android/arm64-v8a/Release/libonnxruntime.so
+          zip -r onnxruntime-android-qnn.zip onnxruntime/build/android/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
